@@ -1,0 +1,3 @@
+<jsp:include page="_header.jspf"/>
+<jsp:doBody/>
+<jsp:include page="_footer.jspf"/>

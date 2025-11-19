@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${pageTitle != null ? pageTitle : 'Sistema de Avaliação'}</title>
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css"/>
+</head>
+<body>
+<header class="topbar">
+  
+  <nav class="topbar__nav" style="margin-left:auto; margin-right:12px;">
+    <a href="${pageContext.request.contextPath}/">Início</a>
+    <a href="${pageContext.request.contextPath}/aluno">Responder</a>
+
+    <c:if test="${sessionScope.isProfessor}">
+      <a href="${pageContext.request.contextPath}/professor">Resultados</a>
+    </c:if>
+
+    <c:if test="${sessionScope.isAdmin}">
+      <a href="${pageContext.request.contextPath}/admin/usuarios">Usuários</a>
+      <a href="${pageContext.request.contextPath}/admin/cursos">Cursos</a>
+      <a href="${pageContext.request.contextPath}/admin/formularios">Formulários</a>
+    </c:if>
+  </nav>
+
+  <div class="row">
+    <c:choose>
+      <c:when test="${not empty sessionScope.usuarioLogado}">
+        <span style="font-weight:600; margin-right:10px;">${sessionScope.usuarioLogado.nome}</span>
+        <form action="${pageContext.request.contextPath}/logout" method="post">
+          <button class="btn ghost" type="submit">Sair</button>
+        </form>
+      </c:when>
+      <c:otherwise>
+        <a class="btn ghost" href="${pageContext.request.contextPath}/login">Entrar</a>
+      </c:otherwise>
+    </c:choose>
+  </div>
+</header>
+<main class="container">

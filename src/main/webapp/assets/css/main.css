@@ -1,0 +1,231 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css to edit this template
+*/
+/* Atualizado para Tema Claro (Light Blue)
+*/
+
+/* ===== Cores e efeitos (fixos, sem var()) ===== */
+
+html, body { height: 100%; }
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+  /* Fundo cinza muito suave para destacar os cards brancos */
+  background: #f8fafc; 
+  /* Texto cinza escuro para bom contraste */
+  color: #334155; 
+}
+
+/* ===== Topbar ===== */
+/* ===== Topbar ===== */
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; 
+  /* Remova o justify-content: space-between para ter controle manual */
+  /* justify-content: space-between; */ 
+  gap: 18px;
+  padding: 14px 24px;
+  background: rgba(255, 255, 255, 0.95);
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.topbar__brand { 
+  display: flex; align-items: center; gap: 12px; 
+  /* Ocupa espaço à esquerda para empurrar o menu */
+  flex: 1;
+}
+
+/* ... (estilos do logo mantidos) ... */
+
+.topbar__nav { 
+  display: flex; gap: 12px; flex-wrap: wrap; 
+  /* Garante que o nav não estique */
+  justify-content: center;
+}
+
+/* Adicione este bloco específico para o container de login/usuário no header */
+.topbar .row {
+  /* Ocupa espaço à direita para equilibrar com o logo */
+  flex: 1;
+  justify-content: flex-end; /* Joga o botão de sair para a ponta direita */
+}
+.topbar__nav { display: flex; gap: 12px; flex-wrap: wrap; }
+.topbar__nav a {
+  color: #475569; text-decoration: none; font-weight: 600; letter-spacing: .2px;
+  padding: 8px 12px; border-radius: 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  transition: all .2s ease;
+}
+.topbar__nav a:hover {
+  background: #eff6ff; /* Azul bem clarinho */
+  color: #2563eb;      /* Azul forte */
+  border-color: #dbeafe;
+}
+
+/* ===== Layout ===== */
+.container { max-width: 1200px; margin: 24px auto; padding: 0 24px; }
+h2, h3 { margin: 8px 0 16px; font-weight: 700; color: #1e293b; }
+
+/* ===== Botões ===== */
+.btn, .link.btn {
+  display: inline-flex; gap: 8px; align-items: center; justify-content: center;
+  padding: 10px 16px; border-radius: 10px; font-weight: 600;
+  text-decoration: none; cursor: pointer; border: none;
+  /* Gradiente Azul Moderno */
+  background: linear-gradient(135deg, #0ea5e9, #2563eb);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+  transition: transform .15s ease, filter .2s ease, box-shadow .2s ease;
+}
+.btn:hover { 
+  transform: translateY(-1px); 
+  filter: brightness(1.05);
+  box-shadow: 0 6px 15px rgba(37, 99, 235, 0.35);
+}
+
+/* Botão Ghost (fundo branco/transparente) */
+.btn.ghost { 
+  background: #ffffff; 
+  color: #2563eb; 
+  border: 1px solid #e2e8f0; 
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.btn.ghost:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.btn.danger { 
+  background: linear-gradient(135deg, #ef4444, #dc2626); 
+  color: #fff; 
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+/* Links de texto */
+.link {
+  background: none; color: #2563eb; border: none; padding: 0; cursor: pointer;
+  text-decoration: none; font-weight: 600;
+}
+.link:hover { text-decoration: underline; }
+.link.danger { color: #ef4444; }
+
+/* ===== Cards ===== */
+.card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+  border-radius: 16px;
+  padding: 24px; margin: 14px 0;
+}
+
+.row { display: flex; gap: 10px; align-items: center; }
+.space-between { display: flex; justify-content: space-between; align-items: center; }
+
+/* ===== Formulários ===== */
+.form {
+  display: grid; gap: 16px; padding: 24px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px; 
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+.form.inline { grid-template-columns: repeat(4, minmax(0,1fr)); align-items: end; }
+
+.form label { 
+  display: flex; flex-direction: column; gap: 6px; 
+  font-size: 14px; font-weight: 500; color: #475569; 
+}
+
+.form input[type="text"],
+.form input[type="email"],
+.form input[type="password"],
+.form input[type="number"],
+.form textarea, .form select {
+  background: #f8fafc; 
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px; padding: 10px 12px; outline: none;
+  transition: all .2s ease;
+  font-family: inherit;
+}
+.form textarea { resize: vertical; min-height: 90px; }
+
+.form input:focus, .form select:focus, .form textarea:focus {
+  background: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* ===== Tabelas (desktop) ===== */
+.table {
+  width: 100%; border-collapse: collapse; overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #e2e8f0; 
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.table th, .table td { 
+  padding: 14px 16px; 
+  border-bottom: 1px solid #e2e8f0; 
+  text-align: left; 
+  color: #334155;
+}
+.table thead th { 
+  color: #1e3a8a; /* Azul escuro */
+  font-weight: 600; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;
+  background: #eff6ff; /* Azul muito claro */
+  border-bottom: 2px solid #dbeafe;
+}
+.table tr:last-child td { border-bottom: none; }
+.table tr:hover td { background: #f8fafc; }
+
+/* Lista de alternativas */
+.alts { margin: 8px 0 0 18px; color: #334155; }
+.alts li { margin: 6px 0; }
+
+/* Footer */
+.footer {
+  margin: 40px auto 20px; padding: 20px; text-align: center; 
+  color: #94a3b8; font-size: 14px;
+  max-width: 1200px; border-top: 1px solid #e2e8f0;
+}
+
+/* ===== Responsividade ===== */
+@media (max-width: 920px){
+  .form.inline { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .topbar__brand h1 { display: none; } 
+}
+@media (max-width: 600px){
+  .form.inline { grid-template-columns: 1fr; }
+  .topbar { padding: 12px 16px; }
+  .container { padding: 0 16px; }
+
+  /* Tabela vira “cards” no mobile */
+  .table, .table thead, .table tbody, .table th, .table td, .table tr { display: block; }
+  .table thead { display: none; }
+  .table tr { 
+    margin: 12px 0; 
+    border: 1px solid #e2e8f0; 
+    border-radius: 12px; 
+    overflow: hidden; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  }
+  .table td {
+    border: none; border-bottom: 1px solid #f1f5f9;
+    position: relative; padding-left: 50%; /* Ajustado para dar espaço ao label */
+    padding-top: 12px; padding-bottom: 12px;
+  }
+  .table td:last-child { border-bottom: none; }
+  
+  .table td::before {
+    content: attr(data-label);
+    position: absolute; left: 16px; top: 12px; width: 40%;
+    font-size: 13px; color: #2563eb; font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+}
