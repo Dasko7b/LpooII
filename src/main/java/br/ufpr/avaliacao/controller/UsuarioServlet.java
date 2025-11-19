@@ -1,100 +1,138 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package br.ufpr.avaliacao.controller;
 
-/**
- *
- * @author Pedro, Gabi
- */
-
-import br.ufpr.avaliacao.model.*;
-import br.ufpr.avaliacao.repository.InMemoryDatabase;
-import br.ufpr.avaliacao.util.ParseUtil;
+import br.ufpr.avaliacao.model.Aluno;
+import br.ufpr.avaliacao.model.Perfil;
+import br.ufpr.avaliacao.model.Professor;
+import br.ufpr.avaliacao.model.Usuario;
+import br.ufpr.avaliacao.service.UsuarioService; 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.*;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
-@WebServlet(name="UsuarioServlet", urlPatterns={"/admin/usuarios"})
+@WebServlet(urlPatterns = {"/admin/usuarios", "/admin/usuarios/form"})
 public class UsuarioServlet extends HttpServlet {
+
+    private final UsuarioService usuarioService = new UsuarioService();
+    // NOTA: Em um sistema completo, você precisaria de AlunoService e ProfessorService/Dao aqui
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-
-        String action = req.getParameter("action");
-        if ("form".equals(action)) {
-            Long id = ParseUtil.toLong(req.getParameter("id"));
-            Usuario u = (id != null) ? InMemoryDatabase.findUsuario(id) : new Usuario();
-            Aluno a = (id != null) ? InMemoryDatabase.findAluno(id) : null;
-            Professor p = (id != null) ? InMemoryDatabase.findProfessor(id) : null;
-
-            req.setAttribute("usuario", u);
-            req.setAttribute("aluno", a);
-            req.setAttribute("prof", p);
+        
+        String action = req.getServletPath();
+        
+        if ("/admin/usuarios/form".equals(action)) {
+            // Lógica para carregar o formulário de um usuário específico ou novo
+            String idStr = req.getParameter("id");
+            Usuario usuario = null;
+            if (idStr != null) {
+                try {
+                    Long id = Long.parseLong(idStr);
+                    // *** MUDANÇA AQUI: Busca no Service (que usa o DAO) ***
+                    usuario = usuarioService.buscarPorId(id); 
+                } catch (NumberFormatException ignored) {
+                    // Se o ID for inválido, inicia um novo usuário (null)
+                }
+            }
+            req.setAttribute("usuario", usuario != null ? usuario : new Usuario());
+            req.setAttribute("pageTitle", usuario != null ? "Editar Usuário" : "Novo Usuário");
             req.getRequestDispatcher("/WEB-INF/views/usuarios-form.jsp").forward(req, resp);
-            return;
+            
+        } else {
+            // Lógica para listar todos os usuários
+            List<Usuario> usuarios = usuarioService.listarTodos();
+            
+            req.setAttribute("usuarios", usuarios);
+            req.setAttribute("pageTitle", "Gestão de Usuários");
+            req.getRequestDispatcher("/WEB-INF/views/usuarios-list.jsp").forward(req, resp);
         }
-
-        // lista
-        List<Usuario> usuarios = InMemoryDatabase.listUsuarios();
-        req.setAttribute("usuarios", usuarios);
-        req.getRequestDispatcher("/WEB-INF/views/usuarios-list.jsp").forward(req, resp);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        String action = req.getParameter("action");
-        if ("save".equals(action)) {
-            Long id = ParseUtil.toLong(req.getParameter("id"));
-            String nome = req.getParameter("nome");
-            String email = req.getParameter("email");
-            String login = req.getParameter("login");
-            String senha = req.getParameter("senha");
-            boolean ativo = ParseUtil.toBool(req.getParameter("ativo"));
+        // 1. Coleta de dados
+        String idStr = req.getParameter("id");
+        String nome = req.getParameter("nome");
+        String email = req.getParameter("email");
+        String login = req.getParameter("login");
+        String senha = req.getParameter("senha"); // Em sistemas reais, a senha seria tratada separadamente (RNF02)
+        boolean ativo = "on".equals(req.getParameter("ativo"));
 
-            Usuario u = (id != null) ? InMemoryDatabase.findUsuario(id) : new Usuario();
-            u.setNome(nome);
-            u.setEmail(email);
-            u.setLogin(login);
-            u.setSenhaHash(senha); // etapa 1: sem hash real
-            u.setAtivo(ativo);
-
-            EnumSet<Perfil> perfis = EnumSet.noneOf(Perfil.class);
-            if (ParseUtil.toBool(req.getParameter("perfilAluno"))) perfis.add(Perfil.ALUNO);
-            if (ParseUtil.toBool(req.getParameter("perfilProfessor"))) perfis.add(Perfil.PROFESSOR);
-            if (ParseUtil.toBool(req.getParameter("perfilCoord"))) perfis.add(Perfil.COORDENADOR);
-            if (ParseUtil.toBool(req.getParameter("perfilAdmin"))) perfis.add(Perfil.ADMIN);
-            u.setPerfis(perfis);
-
-            InMemoryDatabase.saveUsuario(u);
-
-            // extensões
-            String matricula = req.getParameter("matricula");
-            if (perfis.contains(Perfil.ALUNO) && matricula != null && !matricula.isBlank()) {
-                InMemoryDatabase.upsertAluno(new Aluno(u.getId(), matricula));
+        String[] perfisStr = req.getParameterValues("perfis");
+        Set<Perfil> perfis = EnumSet.noneOf(Perfil.class);
+        if (perfisStr != null) {
+            for (String p : perfisStr) {
+                try {
+                    perfis.add(Perfil.valueOf(p.toUpperCase()));
+                } catch (IllegalArgumentException ignored) {}
             }
-            String registro = req.getParameter("registro");
-            String departamento = req.getParameter("departamento");
-            if (perfis.contains(Perfil.PROFESSOR) &&
-                (registro != null && !registro.isBlank() || departamento != null && !departamento.isBlank())) {
-                InMemoryDatabase.upsertProfessor(new Professor(u.getId(), registro, departamento));
-            }
+        }
+        
+        // Dados de sub-classe (Aluno/Professor)
+        String matricula = req.getParameter("matricula");
+        String registro = req.getParameter("registro");
+        String departamento = req.getParameter("departamento");
 
-            resp.sendRedirect(req.getContextPath() + "/admin/usuarios");
-            return;
+        // 2. Criação/Atualização do Objeto
+        Usuario usuario;
+        if (idStr != null && !idStr.isEmpty()) {
+            // Edição: carrega o usuário existente.
+            usuario = usuarioService.buscarPorId(Long.parseLong(idStr));
+            if (usuario == null) {
+                // Erro: Usuário não encontrado
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Usuário não encontrado.");
+                return;
+            }
+        } else {
+            // Novo: cria uma nova instância
+            usuario = new Usuario();
         }
-        if ("delete".equals(action)) {
-            Long id = ParseUtil.toLong(req.getParameter("id"));
-            if (id != null) InMemoryDatabase.deleteUsuario(id);
-            resp.sendRedirect(req.getContextPath() + "/admin/usuarios");
+
+        usuario.setNome(nome);
+        usuario.setEmail(email);
+        usuario.setLogin(login);
+        usuario.setAtivo(ativo);
+        usuario.setPerfis(perfis);
+        
+        // Atualiza senha APENAS se um novo valor for fornecido (mantém o hash existente se estiver vazio)
+        if (senha != null && !senha.isEmpty()) {
+            usuario.setSenhaHash(senha); // NOTE: Em produção, isso deve ser um hash (ex: BCrypt.hash(senha))
         }
+
+        // 3. Salva o Usuário Principal
+        // *** MUDANÇA AQUI: Salva no Service (que usa o DAO) ***
+        usuario = usuarioService.salvarUsuario(usuario);
+        
+        // 4. Lógica de Aluno/Professor (RF01 - RF06)
+        
+        // Aluno:
+        if (perfis.contains(Perfil.ALUNO) && matricula != null) {
+            Aluno a = usuario.getAluno() != null ? usuario.getAluno() : new Aluno();
+            a.setUsuarioId(usuario.getId());
+            a.setMatricula(matricula);
+            // *** Novo: Salva sub-classe. Necessita de AlunoDao. ***
+            usuarioService.salvarAluno(a); 
+        } 
+        // Professor:
+        if (perfis.contains(Perfil.PROFESSOR) && registro != null) {
+            Professor p = usuario.getProfessor() != null ? usuario.getProfessor() : new Professor();
+            p.setUsuarioId(usuario.getId());
+            p.setRegistro(registro);
+            p.setDepartamento(departamento);
+            // *** Novo: Salva sub-classe. Necessita de ProfessorDao. ***
+            usuarioService.salvarProfessor(p);
+        }
+        
+        // 5. Redirecionamento
+        resp.sendRedirect(req.getContextPath() + "/admin/usuarios?msg=sucesso");
     }
 }

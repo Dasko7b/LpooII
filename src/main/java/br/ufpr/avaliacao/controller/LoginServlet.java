@@ -1,17 +1,8 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package br.ufpr.avaliacao.controller;
-
-/**
- *
- * @author Pedro, Gabi
- */
 
 import br.ufpr.avaliacao.model.Perfil;
 import br.ufpr.avaliacao.model.Usuario;
-import br.ufpr.avaliacao.repository.InMemoryDatabase;
+import br.ufpr.avaliacao.service.UsuarioService; 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
@@ -21,6 +12,9 @@ import java.util.Set;
 
 @WebServlet(urlPatterns = {"/login"})
 public class LoginServlet extends HttpServlet {
+
+    // Instancia o Service para uso na Camada Controller
+    private final UsuarioService usuarioService = new UsuarioService();
 
     private boolean has(Set<Perfil> perfis, Perfil p) {
         return perfis != null && perfis.contains(p);
@@ -41,7 +35,10 @@ public class LoginServlet extends HttpServlet {
         String login = req.getParameter("login");
         String senha = req.getParameter("senha");
 
-        Usuario u = InMemoryDatabase.findByLoginESenha(login, senha);
+        // *** MUDANÇA CRUCIAL: Delega a autenticação ao UsuarioService ***
+        // O UsuarioService chamará o UsuarioDao que se conecta ao PostgreSQL.
+        Usuario u = usuarioService.autenticar(login, senha);
+        
         if (u == null) {
             req.setAttribute("erro", "Login ou senha inválidos.");
             doGet(req, resp);

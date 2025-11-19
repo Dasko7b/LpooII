@@ -1,94 +1,76 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package br.ufpr.avaliacao.controller;
 
-/**
- *
- * @author Pedro, Gabi
- */
-
-import br.ufpr.avaliacao.model.*;
-import br.ufpr.avaliacao.repository.InMemoryDatabase;
-
+import br.ufpr.avaliacao.model.Turma;
+import br.ufpr.avaliacao.model.Usuario;
+import br.ufpr.avaliacao.model.relatorio.EstatisticaQuestao;
+// import br.ufpr.avaliacao.repository.InMemoryDatabase; // REMOVIDO
+import br.ufpr.avaliacao.service.ContextoService; // Para buscar turmas do professor (RF05)
+import br.ufpr.avaliacao.service.RelatorioService; // Para gerar relatórios (RF16-RF19)
+import br.ufpr.avaliacao.util.ParseUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.*;
-import java.io.IOException;
-import java.util.*;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
-@WebServlet("/professor")
+import java.io.IOException;
+import java.util.List;
+
+@WebServlet(urlPatterns = {"/professor", "/professor/relatorio"})
 public class ProfessorHomeServlet extends HttpServlet {
 
-    // Classe auxiliar para exibir estatísticas
-    public static class DistItem {
-        private String alternativa;   // texto da alternativa
-        private int votos;
-        private double percentual;
-
-        public DistItem(String alternativa, int votos, double percentual) {
-            this.alternativa = alternativa;
-            this.votos = votos;
-            this.percentual = percentual;
-        }
-
-        public String getAlternativa() { return alternativa; }
-        public void setAlternativa(String alternativa) { this.alternativa = alternativa; }
-
-        public int getVotos() { return votos; }
-        public void setVotos(int votos) { this.votos = votos; }
-
-        public double getPercentual() { return percentual; }
-        public void setPercentual(double percentual) { this.percentual = percentual; }
-    }
+    private final ContextoService contextoService = new ContextoService();
+    private final RelatorioService relatorioService = new RelatorioService();
+    
+    // NOTA: Para implementar RF05, você precisará de um método em ContextoService para 
+    // buscar Turmas por Professor. Para fins de demonstração, assumimos que ele existe.
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
 
-        List<Formulario> formularios = InMemoryDatabase.listFormularios();
-        Map<Long, List<Questao>> questoesPorFormulario = new HashMap<>();
-        Map<Long, List<DistItem>> distQuestoes = new HashMap<>();
-        Map<Long, List<Resposta>> respostasAbertas = new HashMap<>();
-
-        for (Formulario f : formularios) {
-            List<Questao> questoes = InMemoryDatabase.listQuestoesByFormulario(f.getId());
-            questoesPorFormulario.put(f.getId(), questoes);
-
-            for (Questao q : questoes) {
-                if (q.getTipo() == TipoQuestao.ABERTA) {
-                    // pega todas as respostas abertas dessa questão
-                    List<Resposta> respostas = InMemoryDatabase.listRespostasByQuestao(q.getId());
-                    respostasAbertas.put(q.getId(), respostas);
-                } else {
-                    // monta distribuição de alternativas
-                    List<Alternativa> alternativas = InMemoryDatabase.listAlternativasByQuestao(q.getId());
-                    List<Resposta> respostas = InMemoryDatabase.listRespostasByQuestao(q.getId());
-
-                    Map<Long, Integer> contagem = new HashMap<>();
-                    for (Resposta r : respostas) {
-                        for (Long altId : r.getAlternativasIds()) {
-                            contagem.put(altId, contagem.getOrDefault(altId, 0) + 1);
-                        }
-                    }
-
-                    int total = respostas.size();
-                    List<DistItem> dist = new ArrayList<>();
-                    for (Alternativa a : alternativas) {
-                        int votos = contagem.getOrDefault(a.getId(), 0);
-                        double perc = total > 0 ? (votos * 100.0 / total) : 0.0;
-                        dist.add(new DistItem(a.getTexto(), votos, perc));
-                    }
-                    distQuestoes.put(q.getId(), dist);
-                }
-            }
+        Usuario professor = (Usuario) req.getSession().getAttribute("usuarioLogado");
+        if (professor == null) {
+            resp.sendRedirect(req.getContextPath() + "/login");
+            return;
         }
 
-        req.setAttribute("formularios", formularios);
-        req.setAttribute("questoesPorFormulario", questoesPorFormulario);
-        req.setAttribute("distQuestoes", distQuestoes);
-        req.setAttribute("respostasAbertas", respostasAbertas);
+        String action = req.getServletPath();
 
-        req.getRequestDispatcher("/WEB-INF/views/professor-home.jsp").forward(req, resp);
+        if ("/professor/relatorio".equals(action)) {
+            // Lógica para visualizar o relatório de uma turma/formulário
+
+            Long formularioId = ParseUtil.parseLong(req.getParameter("formId"));
+            Long turmaId = ParseUtil.parseLong(req.getParameter("turmaId")); // RF16: Filtrar por Turma
+            
+            if (formularioId == null || turmaId == null) {
+                req.setAttribute("erro", "Turma ou Formulário inválido.");
+                // Redireciona para a home se os parâmetros estiverem incompletos
+                resp.sendRedirect(req.getContextPath() + "/professor"); 
+                return;
+            }
+
+            // 1. Geração do Relatório Consolidado (RF16, RF17)
+            // O Service já aplica a regra de que professores não veem respostas abertas (RF19)
+            List<EstatisticaQuestao> relatorio = relatorioService.gerarRelatorioConsolidado(formularioId, professor);
+
+            req.setAttribute("relatorio", relatorio);
+            req.setAttribute("pageTitle", "Relatório Consolidado");
+            
+            req.getRequestDispatcher("/WEB-INF/views/professor-relatorio.jsp").forward(req, resp);
+            
+        } else { // Rota /professor
+            // 1. Listar Turmas que o professor leciona (RF05)
+            // *** MUDANÇA AQUI: Assume-se que este método existe no Service ***
+            // List<Turma> turmas = contextoService.listarTurmasPorProfessor(professor.getId());
+            List<Turma> turmas = contextoService.listarTurmas(); // Usando findAll temporariamente
+            
+            // 2. Lógica para carregar os formulários vinculados às turmas (RF07)
+            // ...
+
+            req.setAttribute("turmas", turmas);
+            req.setAttribute("pageTitle", "Área do Professor");
+            req.getRequestDispatcher("/WEB-INF/views/professor-home.jsp").forward(req, resp);
+        }
     }
 }
