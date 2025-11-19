@@ -33,7 +33,7 @@
         </form>
       </c:when>
       <c:otherwise>
-        <a class="btn ghost" href="${pageContext.request.contextPath}/login">Entrar</a>
+        <a class="btn ghost" href="${pageContext.request.contextPath}/login">Login</a>
       </c:otherwise>
     </c:choose>
   </div>

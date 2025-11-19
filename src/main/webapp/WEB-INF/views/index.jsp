@@ -1,6 +1,5 @@
 <%-- 
     Document   : index
-    Created on : 1 de out. de 2025, 09:12:06
     Author     : Bruno, Dyego, Maria, Matheus, Thiago
 --%>
 
@@ -8,11 +7,26 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ include file="_header.jspf" %>
 
-<h2>Protótipo de Telas (Etapa 1)</h2>
-<ul>
-  <li><a class="btn" href="${pageContext.request.contextPath}/admin/usuarios">Gerenciar Usuários</a></li>
-  <li><a class="btn" href="${pageContext.request.contextPath}/admin/cursos">Gerenciar Cursos</a></li>
-  <li><a class="btn" href="${pageContext.request.contextPath}/admin/formularios">Gerenciar Formulários</a></li>
-</ul>
+<h2>Painel Administrativo</h2>
+<p style="color:#64748b; margin-bottom: 24px;">Selecione uma opção para gerenciar o sistema:</p>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px;">
+    
+  <a class="btn" href="${pageContext.request.contextPath}/admin/usuarios" 
+     style="min-width: 200px; justify-content: center; height: 50px;">
+      Gerenciar Usuários
+  </a>
+  
+  <a class="btn" href="${pageContext.request.contextPath}/admin/cursos" 
+     style="min-width: 200px; justify-content: center; height: 50px;">
+      Gerenciar Cursos
+  </a>
+  
+  <a class="btn" href="${pageContext.request.contextPath}/admin/formularios" 
+     style="min-width: 200px; justify-content: center; height: 50px;">
+      Gerenciar Formulários
+  </a>
+  
+</div>
 
 <%@ include file="_footer.jspf" %>

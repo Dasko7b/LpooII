@@ -76,19 +76,22 @@ h2, h3 { margin: 8px 0 16px; font-weight: 700; color: #1e293b; }
   display: inline-flex; gap: 8px; align-items: center; justify-content: center;
   padding: 10px 16px; border-radius: 10px; font-weight: 600;
   text-decoration: none; cursor: pointer; border: none;
-  /* Gradiente Azul Moderno */
-  background: linear-gradient(135deg, #0ea5e9, #2563eb);
+  
+  /* ALTERADO: De gradiente para cor Sólida (Azul Royal) */
+  background: #2563eb; 
   color: #ffffff;
+  
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
-  transition: transform .15s ease, filter .2s ease, box-shadow .2s ease;
+  transition: all .2s ease;
 }
+
 .btn:hover { 
   transform: translateY(-1px); 
-  filter: brightness(1.05);
+  /* ALTERADO: Cor sólida mais escura ao passar o mouse */
+  background: #1d4ed8; 
   box-shadow: 0 6px 15px rgba(37, 99, 235, 0.35);
 }
 
-/* Botão Ghost (fundo branco/transparente) */
 .btn.ghost { 
   background: #ffffff; 
   color: #2563eb; 
@@ -101,9 +104,13 @@ h2, h3 { margin: 8px 0 16px; font-weight: 700; color: #1e293b; }
 }
 
 .btn.danger { 
-  background: linear-gradient(135deg, #ef4444, #dc2626); 
+  /* Mantive sólido aqui também para combinar */
+  background: #ef4444; 
   color: #fff; 
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+.btn.danger:hover {
+  background: #dc2626;
 }
 
 /* Links de texto */
